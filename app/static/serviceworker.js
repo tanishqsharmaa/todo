@@ -1,4 +1,4 @@
-const CACHE_NAME = "path-pivot-cache-v1";
+const CACHE_NAME = "todo-cache-v1";
 const urlsToCache = [
     "/",
     "/static/manifest.json",
