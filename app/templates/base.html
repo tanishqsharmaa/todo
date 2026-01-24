@@ -3,8 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>{% block title %}AI To-Do{% endblock %} | AI-Powered Task Manager</title>
+
+    <!-- Styles -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <!-- PWA: Manifest -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+
+    <!-- PWA: Theme color -->
+    <meta name="theme-color" content="#0d6efd">
 </head>
 <body>
     {% if current_user.is_authenticated %}
@@ -45,5 +54,17 @@
     <footer class="footer">
         <p>AI-Powered To-Do List MVP | Built with Flask + SQLite</p>
     </footer>
+
+    <!-- PWA: Service Worker Registration -->
+    <script>
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", () => {
+                navigator.serviceWorker
+                    .register("/static/service-worker.js")
+                    .then(reg => console.log("Service Worker registered:", reg.scope))
+                    .catch(err => console.error("Service Worker registration failed:", err));
+            });
+        }
+    </script>
 </body>
 </html>
