@@ -1,7 +1,7 @@
 {
     "name": "Todo",
     "short_name": "Todo",
-    "start_url": "/login",
+    "start_url": "/",
     "display": "standalone",
     "background_color": "#63d1c6",
     "theme_color": "#176a8f",
