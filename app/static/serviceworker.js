@@ -1,6 +1,8 @@
 const CACHE_NAME = "todo-cache-v1";
 const urlsToCache = [
     "/",
+    "/login",
+    "/dashboard",
     "/static/manifest.json",
     "/static/icons/icon-192.png",
     "/static/icons/icon-512.png"
