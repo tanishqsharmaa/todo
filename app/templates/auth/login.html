@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h1>🤖 AI To-Do</h1>
+            <p>Welcome back! Please log in to continue.</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('auth.login') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" 
+                       id="email" 
+                       name="email" 
+                       class="form-control" 
+                       value="{{ email|default('') }}"
+                       placeholder="you@example.com"
+                       required 
+                       autofocus>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" 
+                       id="password" 
+                       name="password" 
+                       class="form-control" 
+                       placeholder="Enter your password"
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
+                    <input type="checkbox" name="remember" value="1">
+                    Remember me
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                Log In
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            <p>Don't have an account? <a href="{{ url_for('auth.register') }}">Register here</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

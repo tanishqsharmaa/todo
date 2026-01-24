@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Create Task{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Create New Task</h1>
+    <p>Add a task and let AI help prioritize it</p>
+</div>
+
+<div class="card" style="max-width: 600px;">
+    <form method="POST" action="{{ url_for('tasks.create_task') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        
+        <div class="form-group">
+            <label for="title">Task Title *</label>
+            <input type="text" 
+                   id="title" 
+                   name="title" 
+                   class="form-control" 
+                   placeholder="What needs to be done?"
+                   required 
+                   autofocus>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" 
+                      name="description" 
+                      class="form-control" 
+                      placeholder="Add details, notes, or context... (This text will be analyzed for sentiment)"
+                      rows="4"></textarea>
+            <small class="text-muted">Tip: Your description helps the AI understand your stress levels and adjust reminders accordingly.</small>
+        </div>
+
+        <div class="grid grid-2">
+            <div class="form-group">
+                <label for="due_date">Due Date</label>
+                <input type="datetime-local" 
+                       id="due_date" 
+                       name="due_date" 
+                       class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="estimated_minutes">Estimated Duration (minutes)</label>
+                <input type="number" 
+                       id="estimated_minutes" 
+                       name="estimated_minutes" 
+                       class="form-control" 
+                       value="30"
+                       min="1"
+                       max="480">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="importance">Importance Level</label>
+            <select id="importance" name="importance" class="form-control">
+                <option value="1">1 - Very Low</option>
+                <option value="2">2 - Low</option>
+                <option value="3" selected>3 - Medium</option>
+                <option value="4">4 - High</option>
+                <option value="5">5 - Critical</option>
+            </select>
+            <small class="text-muted">AI combines this with deadline and your history to calculate dynamic priority.</small>
+        </div>
+
+        <div class="btn-group mt-3">
+            <button type="submit" class="btn btn-primary">Create Task</button>
+            <a href="{{ url_for('tasks.list_tasks') }}" class="btn btn-outline">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

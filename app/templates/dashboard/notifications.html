@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+<div class="page-header flex flex-between flex-center">
+    <div>
+        <h1>Notifications</h1>
+        <p>AI-generated reminders based on your tasks and sentiment</p>
+    </div>
+    {% if notifications %}
+    <form action="{{ url_for('dashboard.mark_all_read') }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-outline">Mark All as Read</button>
+    </form>
+    {% endif %}
+</div>
+
+<div class="card">
+    {% if notifications %}
+    <div>
+        {% for notification in notifications %}
+        <div class="notification-item {% if not notification.is_read %}unread{% endif %}">
+            <div class="notification-content">
+                <div class="notification-message">{{ notification.message }}</div>
+                <div class="notification-time">
+                    {{ notification.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+                </div>
+                <div style="margin-top: 0.25rem;">
+                    <span class="notification-tone tone-{{ notification.tone }}">{{ notification.tone }} tone</span>
+                    {% if notification.task_id %}
+                    <a href="{{ url_for('tasks.view_task', task_id=notification.task_id) }}" 
+                       class="text-muted" style="font-size: 0.75rem; margin-left: 0.5rem;">
+                        View Task →
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% if not notification.is_read %}
+            <form action="{{ url_for('dashboard.mark_read', notification_id=notification.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm btn-outline" title="Mark as read">✓</button>
+            </form>
+            {% else %}
+            <span class="text-muted" style="font-size: 0.75rem;">Read</span>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">🔔</div>
+        <h3>No notifications yet</h3>
+        <p>Reminders will appear here when tasks are due.</p>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">
+        <h3>About Notifications</h3>
+    </div>
+    <div style="font-size: 0.875rem; color: var(--text-light);">
+        <p class="mb-2">The AI generates reminders based on:</p>
+        <ul style="padding-left: 1.25rem;">
+            <li><strong>Due dates</strong> - Tasks due within 24 hours get reminders</li>
+            <li><strong>Priority</strong> - Higher priority tasks get more attention</li>
+            <li><strong>Your sentiment</strong> - Reminder tone adapts to your stress level</li>
+        </ul>
+        <div class="mt-2">
+            <p><strong>Tone meanings:</strong></p>
+            <div class="mt-1">
+                <span class="notification-tone tone-soft">soft</span> - Gentle, encouraging reminders for high-stress periods
+            </div>
+            <div class="mt-1">
+                <span class="notification-tone">neutral</span> - Balanced, informative reminders
+            </div>
+            <div class="mt-1">
+                <span class="notification-tone tone-assertive">assertive</span> - Direct, action-oriented reminders for productive periods
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline">← Back to Dashboard</a>
+</div>
+{% endblock %}

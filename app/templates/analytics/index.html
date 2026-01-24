@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Analytics Dashboard</h1>
+    <p>AI-powered insights into your productivity patterns</p>
+</div>
+
+<!-- Task Statistics -->
+<div class="grid grid-4 mb-3">
+    <div class="card stat-card">
+        <div class="stat-value">{{ task_stats.total }}</div>
+        <div class="stat-label">Total Tasks</div>
+    </div>
+    <div class="card stat-card">
+        <div class="stat-value text-success">{{ task_stats.completed }}</div>
+        <div class="stat-label">Completed</div>
+    </div>
+    <div class="card stat-card">
+        <div class="stat-value">{{ task_stats.pending }}</div>
+        <div class="stat-label">Pending</div>
+    </div>
+    <div class="card stat-card">
+        <div class="stat-value">{{ task_stats.completion_rate }}%</div>
+        <div class="stat-label">Completion Rate</div>
+    </div>
+</div>
+
+<!-- AI Insights -->
+<div class="card mb-3">
+    <div class="card-header">
+        <h2>Weekly AI Insights</h2>
+    </div>
+    
+    {% if ai_insights %}
+    <div>
+        {% for insight in ai_insights %}
+        <div class="insight-card insight-{{ insight.type }}">
+            <div class="insight-title">{{ insight.title }}</div>
+            <div class="insight-text">{{ insight.text }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-muted">Complete more tasks to generate insights!</p>
+    {% endif %}
+</div>
+
+<div class="grid grid-2">
+    <!-- Productivity by Hour -->
+    <div class="card">
+        <div class="card-header">
+            <h2>Productivity by Hour</h2>
+        </div>
+        
+        {% if productivity_by_hour %}
+        <div class="bar-chart" style="margin-bottom: 30px;">
+            {% set max_count = productivity_by_hour|map(attribute='count')|max or 1 %}
+            {% for hour_data in productivity_by_hour %}
+                {% if hour_data.hour % 2 == 0 %}
+                <div class="bar" 
+                     style="height: {{ (hour_data.count / max_count * 100)|int if max_count > 0 else 0 }}%;"
+                     title="{{ hour_data.hour }}:00 - {{ hour_data.count }} tasks">
+                    <span class="bar-label">{{ hour_data.hour }}</span>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        <p class="text-muted" style="font-size: 0.875rem; text-align: center;">
+            Tasks completed by hour of day
+        </p>
+        {% else %}
+        <div class="empty-state">
+            <p>No data yet. Complete some tasks to see your patterns!</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Delay Frequency -->
+    <div class="card">
+        <div class="card-header">
+            <h2>Delay Patterns by Day</h2>
+        </div>
+        
+        {% if delay_frequency %}
+        <div class="bar-chart" style="margin-bottom: 30px;">
+            {% set max_delay = delay_frequency|map(attribute='count')|max or 1 %}
+            {% for day_data in delay_frequency %}
+            <div class="bar" 
+                 style="height: {{ (day_data.count / max_delay * 100)|int if max_delay > 0 else 0 }}%; background: var(--warning);"
+                 title="{{ day_data.day }} - {{ day_data.count }} postponements">
+                <span class="bar-label">{{ day_data.day[:3] }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        <p class="text-muted" style="font-size: 0.875rem; text-align: center;">
+            Task postponements by day of week
+        </p>
+        {% else %}
+        <div class="empty-state">
+            <p>No delay data to show.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Weekly Progress & Estimation -->
+<div class="grid grid-2 mt-3">
+    <!-- Weekly Progress -->
+    <div class="card">
+        <div class="card-header">
+            <h2>This Week's Progress</h2>
+        </div>
+        
+        <div class="grid grid-3">
+            <div class="stat-card">
+                <div class="stat-value text-success">{{ weekly_stats.completed }}</div>
+                <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ weekly_stats.created }}</div>
+                <div class="stat-label">Created</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value {% if weekly_stats.net_progress > 0 %}text-success{% elif weekly_stats.net_progress < 0 %}text-danger{% endif %}">
+                    {% if weekly_stats.net_progress > 0 %}+{% endif %}{{ weekly_stats.net_progress }}
+                </div>
+                <div class="stat-label">Net Progress</div>
+            </div>
+        </div>
+        
+        <div class="mt-2 text-muted" style="font-size: 0.875rem;">
+            {% if weekly_stats.net_progress > 0 %}
+                Great job! You're completing more tasks than you're creating.
+            {% elif weekly_stats.net_progress < 0 %}
+                You're adding tasks faster than completing them. Consider prioritizing.
+            {% else %}
+                You're keeping pace with new tasks.
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Estimation Accuracy -->
+    <div class="card">
+        <div class="card-header">
+            <h2>Time Estimation Accuracy</h2>
+        </div>
+        
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+            <div class="score-circle {% if estimation_accuracy.ratio > 1.2 %}score-high{% elif estimation_accuracy.ratio < 0.8 %}score-low{% else %}score-medium{% endif %}" 
+                 style="width: 60px; height: 60px; font-size: 1rem;">
+                {{ estimation_accuracy.ratio }}x
+            </div>
+            <div>
+                <div style="font-weight: 600;">
+                    {% if estimation_accuracy.ratio > 1.2 %}
+                        Underestimating
+                    {% elif estimation_accuracy.ratio < 0.8 %}
+                        Overestimating
+                    {% else %}
+                        Accurate
+                    {% endif %}
+                </div>
+                <div class="text-muted" style="font-size: 0.875rem;">
+                    Actual / Estimated ratio
+                </div>
+            </div>
+        </div>
+        
+        <div class="insight-card insight-info">
+            <div class="insight-text">{{ estimation_accuracy.insight }}</div>
+        </div>
+        
+        {% if estimation_accuracy.total_estimated > 0 %}
+        <div class="text-muted mt-2" style="font-size: 0.875rem;">
+            Total estimated: {{ estimation_accuracy.total_estimated }} min |
+            Total actual: {{ estimation_accuracy.total_actual }} min
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Focus Time Insights -->
+<div class="card mt-3">
+    <div class="card-header">
+        <h2>Your Optimal Focus Times</h2>
+    </div>
+    
+    {% if focus_insights and focus_insights.top_windows %}
+    <div class="grid grid-2">
+        {% for window in focus_insights.top_windows %}
+        <div class="focus-window" style="flex-direction: column; align-items: flex-start;">
+            <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                <div class="focus-time">{{ window.label }}</div>
+                <div class="focus-score">{{ window.productivity_score|int }}% productive</div>
+            </div>
+            {% if window.suggested_tasks %}
+            <div class="mt-1 text-muted" style="font-size: 0.875rem;">
+                <strong>Best for:</strong> {{ window.suggested_tasks|join(', ') }}
+            </div>
+            {% endif %}
+            {% if window.completions %}
+            <div class="text-muted" style="font-size: 0.75rem;">
+                Based on {{ window.completions }} completed tasks
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    
+    {% if focus_insights.recommendations %}
+    <div class="mt-2">
+        {% for rec in focus_insights.recommendations %}
+        <p class="text-muted" style="font-size: 0.875rem;">{{ rec }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="empty-state">
+        <p>Complete more tasks to discover your optimal focus times!</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- How AI Works Section -->
+<div class="card mt-3">
+    <div class="card-header">
+        <h2>How the AI Works</h2>
+    </div>
+    <div class="grid grid-3">
+        <div>
+            <h4>Priority Prediction</h4>
+            <p class="text-muted" style="font-size: 0.875rem;">
+                Combines deadline urgency (30%), importance (25%), postponement history (20%), 
+                estimation accuracy (15%), and task age (10%) to calculate a dynamic 0-100 priority score.
+            </p>
+        </div>
+        <div>
+            <h4>Focus Time Analysis</h4>
+            <p class="text-muted" style="font-size: 0.875rem;">
+                Analyzes when you complete tasks most efficiently and suggests optimal time windows 
+                for different types of work based on your historical patterns.
+            </p>
+        </div>
+        <div>
+            <h4>Sentiment-Aware Reminders</h4>
+            <p class="text-muted" style="font-size: 0.875rem;">
+                Adjusts reminder tone based on detected stress levels in your task descriptions 
+                and daily reflections. High stress = gentler reminders.
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline">← Back to Dashboard</a>
+</div>
+{% endblock %}

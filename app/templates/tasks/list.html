@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}My Tasks{% endblock %}
+
+{% block content %}
+<div class="page-header flex flex-between flex-center">
+    <div>
+        <h1>My Tasks</h1>
+        <p>Sorted by AI-calculated priority</p>
+    </div>
+    <a href="{{ url_for('tasks.create_task') }}" class="btn btn-primary">+ New Task</a>
+</div>
+
+{% if tasks %}
+<div class="card">
+    <ul class="task-list">
+        {% for task in tasks %}
+        <li class="task-item {% if task.status == 'completed' %}completed{% endif %}">
+            <div class="task-priority priority-{{ task.priority_label|lower }}"></div>
+            
+            <div class="task-content">
+                <div class="task-title">
+                    <a href="{{ url_for('tasks.view_task', task_id=task.id) }}">{{ task.title }}</a>
+                </div>
+                <div class="task-meta">
+                    <span class="task-badge badge-{{ task.priority_label|lower }}">
+                        {{ task.priority_label }} ({{ task.priority_score|int }})
+                    </span>
+                    <span class="task-badge badge-{{ task.status }}">{{ task.status|title }}</span>
+                    {% if task.due_date %}
+                    <span>
+                        {% if task.days_until_due is not none %}
+                            {% if task.days_until_due < 0 %}
+                                <span class="text-danger">Overdue by {{ task.days_until_due|abs }} day(s)</span>
+                            {% elif task.days_until_due == 0 %}
+                                <span class="text-warning">Due today</span>
+                            {% elif task.days_until_due == 1 %}
+                                <span class="text-warning">Due tomorrow</span>
+                            {% else %}
+                                Due in {{ task.days_until_due }} days
+                            {% endif %}
+                        {% endif %}
+                    </span>
+                    {% endif %}
+                    <span>{{ task.estimated_minutes }} min</span>
+                    <span>Importance: {{ task.importance }}/5</span>
+                </div>
+            </div>
+
+            <div class="task-actions">
+                {% if task.status == 'pending' %}
+                <form action="{{ url_for('tasks.complete_task', task_id=task.id) }}" method="POST" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-success" title="Mark Complete">✓</button>
+                </form>
+                <form action="{{ url_for('tasks.postpone_task', task_id=task.id) }}" method="POST" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="days" value="1">
+                    <button type="submit" class="btn btn-sm btn-warning" title="Postpone 1 day">→</button>
+                </form>
+                {% else %}
+                <form action="{{ url_for('tasks.reopen_task', task_id=task.id) }}" method="POST" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-outline" title="Reopen">↺</button>
+                </form>
+                {% endif %}
+                <a href="{{ url_for('tasks.edit_task', task_id=task.id) }}" class="btn btn-sm btn-outline" title="Edit">✎</a>
+                <form action="{{ url_for('tasks.delete_task', task_id=task.id) }}" method="POST" style="display: inline;" 
+                      onsubmit="return confirm('Delete this task?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-danger" title="Delete">×</button>
+                </form>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% else %}
+<div class="card">
+    <div class="empty-state">
+        <div class="empty-state-icon">📋</div>
+        <h3>No tasks yet</h3>
+        <p>Create your first task to get started!</p>
+        <a href="{{ url_for('tasks.create_task') }}" class="btn btn-primary mt-2">+ Create Task</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

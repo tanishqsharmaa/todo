@@ -1,0 +1,23 @@
+# Flask and extensions
+Flask
+Flask-SQLAlchemy
+Flask-Login
+Flask-WTF
+Werkzeug
+
+# Database
+SQLAlchemy
+
+# AI/ML dependencies
+textblob
+pandas
+numpy
+
+# Scheduler
+APScheduler
+
+# Email (optional)
+# Flask-Mail==0.9.1
+
+# Development
+python-dotenv

@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Priority Explanation{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Priority Score Explanation</h1>
+    <p>Understanding how the AI calculates task priority</p>
+</div>
+
+<div class="grid grid-2">
+    <!-- Task Info -->
+    <div class="card">
+        <div class="card-header">
+            <h2>Task: {{ task.title }}</h2>
+        </div>
+        
+        <div class="priority-score mb-2">
+            <div class="score-circle score-{{ explanation.label|lower }}" style="width: 80px; height: 80px; font-size: 1.5rem;">
+                {{ explanation.final_score|int }}
+            </div>
+            <div>
+                <div style="font-size: 1.25rem; font-weight: 600;">{{ explanation.label }} Priority</div>
+                <div class="text-muted">AI-calculated dynamic score</div>
+            </div>
+        </div>
+
+        <div class="task-detail-meta" style="flex-direction: column; align-items: flex-start; gap: 0.5rem;">
+            <div class="meta-item">
+                <strong>Status:</strong>
+                <span class="task-badge badge-{{ task.status }}">{{ task.status|title }}</span>
+            </div>
+            <div class="meta-item">
+                <strong>Due Date:</strong>
+                {% if task.due_date %}
+                    {{ task.due_date.strftime('%B %d, %Y at %I:%M %p') }}
+                {% else %}
+                    <span class="text-muted">Not set</span>
+                {% endif %}
+            </div>
+            <div class="meta-item">
+                <strong>Importance:</strong> {{ task.importance }}/5
+            </div>
+            <div class="meta-item">
+                <strong>Estimated:</strong> {{ task.estimated_minutes }} minutes
+            </div>
+            <div class="meta-item">
+                <strong>Created:</strong> {{ task.created_at.strftime('%B %d, %Y') }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Explanation Factors -->
+    <div class="card">
+        <div class="card-header">
+            <h2>Score Factors</h2>
+        </div>
+        
+        <div>
+            {% for factor in explanation.factors %}
+            <div style="padding: 0.75rem 0; border-bottom: 1px solid var(--border);">
+                {% if 'URGENT' in factor %}
+                <span class="text-danger">⚠️ {{ factor }}</span>
+                {% elif 'Postponed' in factor %}
+                <span class="text-warning">📌 {{ factor }}</span>
+                {% elif 'Due' in factor %}
+                <span>📅 {{ factor }}</span>
+                {% elif 'Importance' in factor %}
+                <span>⭐ {{ factor }}</span>
+                {% elif 'created' in factor or 'aging' in factor %}
+                <span>⏳ {{ factor }}</span>
+                {% else %}
+                <span>{{ factor }}</span>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- How Priority is Calculated -->
+<div class="card mt-3">
+    <div class="card-header">
+        <h2>How Priority Score is Calculated</h2>
+    </div>
+    
+    <p class="mb-2">The AI uses a weighted scoring system to calculate task priority. Each factor contributes to the final 0-100 score:</p>
+    
+    <div class="grid grid-2" style="gap: 1.5rem;">
+        <div>
+            <h4>1. Deadline Urgency (30%)</h4>
+            <p class="text-muted" style="font-size: 0.875rem;">
+                How close is the due date? Overdue tasks get maximum urgency (80-100). 
+                Tasks due today score 95, tomorrow 85, within 3 days 70, within a week 55.
+                No due date defaults to 40.
+            </p>
+        </div>
+        
+        <div>
+            <h4>2. User Importance (25%)</h4>
+            <p class="text-muted" style="font-size: 0.875rem;">
+                Your assigned importance level (1-5) is directly mapped to a score.
+                Critical (5) = 100, High (4) = 80, Medium (3) = 60, Low (2) = 40, Very Low (1) = 20.
+            </p>
+        </div>
+        
+        <div>
+            <h4>3. Postponement History (20%)</h4>
+            <p class="text-muted" style="font-size: 0.875rem;">
+                Tasks you've postponed multiple times get higher priority.
+                This helps surface tasks you might be avoiding.
+                Each postponement adds 15 points to this factor.
+            </p>
+        </div>
+        
+        <div>
+            <h4>4. Estimation Accuracy (15%)</h4>
+            <p class="text-muted" style="font-size: 0.875rem;">
+                Based on your history of actual vs estimated time.
+                If you typically underestimate (tasks take longer than planned), 
+                priority is boosted to give you more buffer time.
+            </p>
+        </div>
+        
+        <div>
+            <h4>5. Task Age (10%)</h4>
+            <p class="text-muted" style="font-size: 0.875rem;">
+                Older pending tasks get a slight priority boost.
+                Tasks older than 14 days score 80, 7+ days score 65,
+                3+ days score 55, fresh tasks score 40.
+            </p>
+        </div>
+        
+        <div>
+            <h4>Final Score</h4>
+            <p class="text-muted" style="font-size: 0.875rem;">
+                All weighted factors are combined and normalized to 0-100.
+                <strong>High</strong> priority: 70+ |
+                <strong>Medium</strong> priority: 40-69 |
+                <strong>Low</strong> priority: &lt;40
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Score Labels -->
+<div class="card mt-3">
+    <div class="card-header">
+        <h2>Priority Labels</h2>
+    </div>
+    
+    <div class="grid grid-3">
+        <div class="stat-card">
+            <div class="score-circle score-high" style="margin: 0 auto 0.5rem;">70+</div>
+            <div class="stat-label">High Priority</div>
+            <p class="text-muted" style="font-size: 0.875rem; margin-top: 0.5rem;">
+                Urgent tasks that need immediate attention
+            </p>
+        </div>
+        <div class="stat-card">
+            <div class="score-circle score-medium" style="margin: 0 auto 0.5rem;">40-69</div>
+            <div class="stat-label">Medium Priority</div>
+            <p class="text-muted" style="font-size: 0.875rem; margin-top: 0.5rem;">
+                Important tasks to address soon
+            </p>
+        </div>
+        <div class="stat-card">
+            <div class="score-circle score-low" style="margin: 0 auto 0.5rem;">&lt;40</div>
+            <div class="stat-label">Low Priority</div>
+            <p class="text-muted" style="font-size: 0.875rem; margin-top: 0.5rem;">
+                Tasks that can wait or are less urgent
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- AI Explainability Note -->
+<div class="card mt-3" style="background: #f0f9ff; border: 1px solid #bfdbfe;">
+    <div class="card-header">
+        <h3>AI Transparency Note</h3>
+    </div>
+    <p style="font-size: 0.875rem; color: var(--text);">
+        This priority score is calculated using a <strong>rule-based weighted scoring system</strong>, 
+        not machine learning. Every decision factor is transparent and explainable. 
+        The weights and thresholds are configurable and can be replaced with ML models in the future.
+    </p>
+    <p style="font-size: 0.875rem; color: var(--text); margin-top: 0.5rem;">
+        The goal is to help you focus on what matters most based on objective criteria, 
+        while being completely transparent about how that decision is made.
+    </p>
+</div>
+
+<div class="mt-3">
+    <a href="{{ url_for('tasks.view_task', task_id=task.id) }}" class="btn btn-outline">← Back to Task</a>
+    <a href="{{ url_for('analytics.index') }}" class="btn btn-outline">View Analytics</a>
+</div>
+{% endblock %}

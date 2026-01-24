@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AI To-Do{% endblock %} | AI-Powered Task Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    {% if current_user.is_authenticated %}
+    <nav class="navbar">
+        <div class="nav-brand">
+            <a href="{{ url_for('dashboard.index') }}">🤖 AI To-Do</a>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('dashboard.index') }}" {% if request.endpoint == 'dashboard.index' %}class="active"{% endif %}>Dashboard</a>
+            <a href="{{ url_for('tasks.list_tasks') }}" {% if 'tasks' in request.endpoint %}class="active"{% endif %}>Tasks</a>
+            <a href="{{ url_for('analytics.index') }}" {% if 'analytics' in request.endpoint %}class="active"{% endif %}>Analytics</a>
+            <a href="{{ url_for('dashboard.daily_reflection') }}" {% if request.endpoint == 'dashboard.daily_reflection' %}class="active"{% endif %}>Reflection</a>
+        </div>
+        <div class="nav-user">
+            <span>{{ current_user.email }}</span>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-sm">Logout</a>
+        </div>
+    </nav>
+    {% endif %}
+
+    <main class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash flash-{{ category }}">
+                            {{ message }}
+                            <button class="flash-close" onclick="this.parentElement.remove()">×</button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <p>AI-Powered To-Do List MVP | Built with Flask + SQLite</p>
+    </footer>
+</body>
+</html>

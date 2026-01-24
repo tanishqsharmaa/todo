@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Welcome back!</h1>
+    <p>Here's your AI-powered productivity overview</p>
+</div>
+
+<!-- Quick Stats -->
+<div class="grid grid-4 mb-3">
+    <div class="card stat-card">
+        <div class="stat-value">{{ stats.total_pending }}</div>
+        <div class="stat-label">Pending Tasks</div>
+    </div>
+    <div class="card stat-card">
+        <div class="stat-value">{{ stats.due_today }}</div>
+        <div class="stat-label">Due Today</div>
+    </div>
+    <div class="card stat-card">
+        <div class="stat-value {% if stats.overdue > 0 %}text-danger{% endif %}">{{ stats.overdue }}</div>
+        <div class="stat-label">Overdue</div>
+    </div>
+    <div class="card stat-card">
+        <div class="stat-value">{{ stats.completed_today }}</div>
+        <div class="stat-label">Completed Today</div>
+    </div>
+</div>
+
+<div class="grid grid-2">
+    <!-- High Priority Tasks -->
+    <div class="card">
+        <div class="card-header">
+            <h2>Priority Tasks</h2>
+            <a href="{{ url_for('tasks.list_tasks') }}" class="btn btn-sm btn-outline">View All</a>
+        </div>
+        
+        {% if tasks %}
+        <ul class="task-list">
+            {% for task in tasks %}
+            <li class="task-item">
+                <div class="task-priority priority-{{ task.priority_label|lower }}"></div>
+                <div class="task-content">
+                    <div class="task-title">
+                        <a href="{{ url_for('tasks.view_task', task_id=task.id) }}">{{ task.title }}</a>
+                    </div>
+                    <div class="task-meta">
+                        <span class="task-badge badge-{{ task.priority_label|lower }}">
+                            {{ task.priority_label }} ({{ task.priority_score|int }})
+                        </span>
+                        {% if task.due_date %}
+                        <span>
+                            {% if task.days_until_due is not none and task.days_until_due < 0 %}
+                                <span class="text-danger">Overdue</span>
+                            {% elif task.days_until_due == 0 %}
+                                <span class="text-warning">Today</span>
+                            {% elif task.days_until_due == 1 %}
+                                Tomorrow
+                            {% elif task.days_until_due is not none %}
+                                {{ task.days_until_due }} days
+                            {% endif %}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="task-actions">
+                    <form action="{{ url_for('tasks.complete_task', task_id=task.id) }}" method="POST" style="display: inline;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-sm btn-success" title="Complete">✓</button>
+                    </form>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="empty-state">
+            <p>No pending tasks. Great job!</p>
+            <a href="{{ url_for('tasks.create_task') }}" class="btn btn-primary btn-sm mt-1">+ Add Task</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Notifications -->
+    <div class="card">
+        <div class="card-header">
+            <h2>Notifications</h2>
+            {% if notifications %}
+            <form action="{{ url_for('dashboard.mark_all_read') }}" method="POST" style="display: inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm btn-outline">Mark All Read</button>
+            </form>
+            {% endif %}
+        </div>
+        
+        {% if notifications %}
+        <div>
+            {% for notification in notifications %}
+            <div class="notification-item {% if not notification.is_read %}unread{% endif %}">
+                <div class="notification-content">
+                    <div class="notification-message">{{ notification.message }}</div>
+                    <div class="notification-time">
+                        {{ notification.created_at.strftime('%b %d, %I:%M %p') }}
+                        <span class="notification-tone tone-{{ notification.tone }}">{{ notification.tone }}</span>
+                    </div>
+                </div>
+                {% if not notification.is_read %}
+                <form action="{{ url_for('dashboard.mark_read', notification_id=notification.id) }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-outline">✓</button>
+                </form>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        <div class="mt-2">
+            <a href="{{ url_for('dashboard.notifications') }}" class="text-muted" style="font-size: 0.875rem;">View all notifications →</a>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>No notifications</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Focus Time & Reflection -->
+<div class="grid grid-2 mt-3">
+    <!-- Focus Time Insights -->
+    <div class="card">
+        <div class="card-header">
+            <h2>Focus Time Recommendations</h2>
+        </div>
+        
+        {% if focus_insights and focus_insights.top_windows %}
+        <div>
+            {% for window in focus_insights.top_windows %}
+            <div class="focus-window">
+                <div class="focus-time">{{ window.label }}</div>
+                <div style="flex: 1;">
+                    {% if window.suggested_tasks %}
+                    <small class="text-muted">Best for: {{ window.suggested_tasks|join(', ') }}</small>
+                    {% endif %}
+                </div>
+                <div class="focus-score">{{ window.productivity_score|int }}%</div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        {% if focus_insights.recommendations %}
+        <div class="mt-2" style="font-size: 0.875rem;">
+            {% for rec in focus_insights.recommendations %}
+            <p class="text-muted mb-1">{{ rec }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="empty-state">
+            <p>Complete more tasks to see your productivity patterns!</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Current Mood & Reminder Tone -->
+    <div class="card">
+        <div class="card-header">
+            <h2>Your Current State</h2>
+            <a href="{{ url_for('dashboard.daily_reflection') }}" class="btn btn-sm btn-outline">Daily Reflection</a>
+        </div>
+        
+        <div style="margin-bottom: 1rem;">
+            <div style="font-size: 0.875rem; color: var(--text-light); margin-bottom: 0.5rem;">Current Reminder Tone</div>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                {% if current_tone == 'soft' %}
+                <span style="font-size: 2rem;">🌱</span>
+                <div>
+                    <div style="font-weight: 600;">Gentle Mode</div>
+                    <div class="text-muted" style="font-size: 0.875rem;">Reminders are soft and encouraging</div>
+                </div>
+                {% elif current_tone == 'assertive' %}
+                <span style="font-size: 2rem;">💪</span>
+                <div>
+                    <div style="font-weight: 600;">Action Mode</div>
+                    <div class="text-muted" style="font-size: 0.875rem;">Reminders are direct and motivating</div>
+                </div>
+                {% else %}
+                <span style="font-size: 2rem;">⚖️</span>
+                <div>
+                    <div style="font-weight: 600;">Balanced Mode</div>
+                    <div class="text-muted" style="font-size: 0.875rem;">Reminders are informative and helpful</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <p style="font-size: 0.875rem; color: var(--text-light);">
+            The AI adjusts reminder tones based on your sentiment. 
+            <a href="{{ url_for('dashboard.daily_reflection') }}">Update your reflection</a> to fine-tune this.
+        </p>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="card mt-3">
+    <div class="card-header">
+        <h2>Quick Actions</h2>
+    </div>
+    <div class="btn-group">
+        <a href="{{ url_for('tasks.create_task') }}" class="btn btn-primary">+ New Task</a>
+        <a href="{{ url_for('dashboard.daily_reflection') }}" class="btn btn-outline">Daily Reflection</a>
+        <a href="{{ url_for('analytics.index') }}" class="btn btn-outline">View Analytics</a>
+    </div>
+</div>
+{% endblock %}

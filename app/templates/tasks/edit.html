@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Task{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Edit Task</h1>
+    <p>Update task details</p>
+</div>
+
+<div class="card" style="max-width: 600px;">
+    <form method="POST" action="{{ url_for('tasks.edit_task', task_id=task.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        
+        <div class="form-group">
+            <label for="title">Task Title *</label>
+            <input type="text" 
+                   id="title" 
+                   name="title" 
+                   class="form-control" 
+                   value="{{ task.title }}"
+                   required 
+                   autofocus>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" 
+                      name="description" 
+                      class="form-control" 
+                      rows="4">{{ task.description or '' }}</textarea>
+        </div>
+
+        <div class="grid grid-2">
+            <div class="form-group">
+                <label for="due_date">Due Date</label>
+                <input type="datetime-local" 
+                       id="due_date" 
+                       name="due_date" 
+                       class="form-control"
+                       value="{{ task.due_date.strftime('%Y-%m-%dT%H:%M') if task.due_date else '' }}">
+            </div>
+
+            <div class="form-group">
+                <label for="estimated_minutes">Estimated Duration (minutes)</label>
+                <input type="number" 
+                       id="estimated_minutes" 
+                       name="estimated_minutes" 
+                       class="form-control" 
+                       value="{{ task.estimated_minutes }}"
+                       min="1"
+                       max="480">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="importance">Importance Level</label>
+            <select id="importance" name="importance" class="form-control">
+                <option value="1" {% if task.importance == 1 %}selected{% endif %}>1 - Very Low</option>
+                <option value="2" {% if task.importance == 2 %}selected{% endif %}>2 - Low</option>
+                <option value="3" {% if task.importance == 3 %}selected{% endif %}>3 - Medium</option>
+                <option value="4" {% if task.importance == 4 %}selected{% endif %}>4 - High</option>
+                <option value="5" {% if task.importance == 5 %}selected{% endif %}>5 - Critical</option>
+            </select>
+        </div>
+
+        <div class="card" style="background: var(--bg); margin-bottom: 1rem;">
+            <div style="font-size: 0.875rem;">
+                <strong>Current AI Priority:</strong>
+                <span class="task-badge badge-{{ task.priority_label|lower }}">
+                    {{ task.priority_label }} ({{ task.priority_score|int }}/100)
+                </span>
+                <a href="{{ url_for('analytics.priority_explanation', task_id=task.id) }}" class="text-muted" style="margin-left: 0.5rem;">
+                    Why this score?
+                </a>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <a href="{{ url_for('tasks.view_task', task_id=task.id) }}" class="btn btn-outline">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

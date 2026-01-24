@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Daily Reflection{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Daily Reflection</h1>
+    <p>Share how you're feeling to help the AI adjust your reminders</p>
+</div>
+
+<div class="grid grid-2">
+    <!-- Reflection Form -->
+    <div class="card">
+        <div class="card-header">
+            <h2>How are you feeling today?</h2>
+        </div>
+        
+        <form method="POST" action="{{ url_for('dashboard.daily_reflection') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <div class="form-group">
+                <label for="reflection">Your thoughts</label>
+                <textarea id="reflection" 
+                          name="reflection" 
+                          class="form-control" 
+                          rows="5"
+                          placeholder="Write about your day, your stress levels, how you're feeling about your tasks... The AI will analyze this to adjust your reminder tones."></textarea>
+                <small class="text-muted">
+                    This text is analyzed for sentiment to personalize your experience.
+                </small>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Submit Reflection</button>
+        </form>
+
+        {% if analysis %}
+        <div class="card mt-3" style="background: var(--bg);">
+            <div class="card-header">
+                <h3>Analysis Results</h3>
+            </div>
+            
+            <div class="grid grid-2" style="gap: 1rem;">
+                <div>
+                    <div class="text-muted" style="font-size: 0.75rem; text-transform: uppercase;">Sentiment Score</div>
+                    <div style="font-size: 1.5rem; font-weight: 600;">
+                        {% if analysis.score > 0.2 %}
+                            <span class="text-success">{{ analysis.score }}</span> 😊
+                        {% elif analysis.score < -0.2 %}
+                            <span class="text-danger">{{ analysis.score }}</span> 😟
+                        {% else %}
+                            <span>{{ analysis.score }}</span> 😐
+                        {% endif %}
+                    </div>
+                </div>
+                <div>
+                    <div class="text-muted" style="font-size: 0.75rem; text-transform: uppercase;">Stress Level</div>
+                    <div style="font-size: 1.5rem; font-weight: 600;">
+                        {% if analysis.stress_level == 'High' %}
+                            <span class="text-danger">{{ analysis.stress_level }}</span>
+                        {% elif analysis.stress_level == 'Low' %}
+                            <span class="text-success">{{ analysis.stress_level }}</span>
+                        {% else %}
+                            <span class="text-warning">{{ analysis.stress_level }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {% if analysis.suggestions %}
+            <div class="mt-2">
+                <div class="text-muted" style="font-size: 0.75rem; text-transform: uppercase; margin-bottom: 0.5rem;">Suggestions</div>
+                <ul style="padding-left: 1.25rem; margin: 0;">
+                    {% for suggestion in analysis.suggestions %}
+                    <li style="font-size: 0.875rem;">{{ suggestion }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <div class="mt-2">
+                <div class="text-muted" style="font-size: 0.75rem; text-transform: uppercase;">New Reminder Tone</div>
+                <div style="margin-top: 0.25rem;">
+                    {% if analysis.tone_recommendation == 'soft' %}
+                        🌱 <strong>Gentle Mode</strong> - Reminders will be soft and encouraging
+                    {% elif analysis.tone_recommendation == 'assertive' %}
+                        💪 <strong>Action Mode</strong> - Reminders will be direct and motivating
+                    {% else %}
+                        ⚖️ <strong>Balanced Mode</strong> - Reminders will be informative
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Recent Sentiments -->
+    <div class="card">
+        <div class="card-header">
+            <h2>Recent Mood History</h2>
+        </div>
+        
+        {% if recent_sentiments %}
+        <div>
+            {% for sentiment in recent_sentiments %}
+            <div style="padding: 0.75rem 0; border-bottom: 1px solid var(--border);">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <span style="font-weight: 500;">
+                            {% if sentiment.stress_level == 'High' %}
+                                😟 High Stress
+                            {% elif sentiment.stress_level == 'Low' %}
+                                😊 Low Stress
+                            {% else %}
+                                😐 Medium Stress
+                            {% endif %}
+                        </span>
+                        <span class="text-muted" style="font-size: 0.875rem; margin-left: 0.5rem;">
+                            Score: {{ sentiment.score }}
+                        </span>
+                    </div>
+                    <div class="text-muted" style="font-size: 0.75rem;">
+                        {{ sentiment.timestamp.strftime('%b %d, %I:%M %p') }}
+                    </div>
+                </div>
+                {% if sentiment.source_text %}
+                <div class="text-muted" style="font-size: 0.875rem; margin-top: 0.25rem;">
+                    "{{ sentiment.source_text[:100] }}{% if sentiment.source_text|length > 100 %}...{% endif %}"
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>No mood history yet. Submit your first reflection!</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- How It Works -->
+<div class="card mt-3">
+    <div class="card-header">
+        <h2>How Sentiment Analysis Works</h2>
+    </div>
+    <div class="grid grid-3">
+        <div>
+            <h4>1. Text Analysis</h4>
+            <p class="text-muted" style="font-size: 0.875rem;">
+                Your reflection text is analyzed using natural language processing to detect emotional tone and stress indicators.
+            </p>
+        </div>
+        <div>
+            <h4>2. Score Calculation</h4>
+            <p class="text-muted" style="font-size: 0.875rem;">
+                A sentiment score from -1 (very negative) to +1 (very positive) is calculated, along with a stress level assessment.
+            </p>
+        </div>
+        <div>
+            <h4>3. Reminder Adjustment</h4>
+            <p class="text-muted" style="font-size: 0.875rem;">
+                Based on your recent sentiments, reminder tones are automatically adjusted to be more gentle or more direct.
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline">← Back to Dashboard</a>
+</div>
+{% endblock %}
