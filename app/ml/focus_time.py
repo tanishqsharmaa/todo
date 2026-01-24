@@ -1,24 +1,4 @@
-"""
-Focus Time Recommendation Engine for AI-Powered To-Do List MVP
 
-This module analyzes when the user is most productive and recommends:
-1. Top 2 most productive time windows
-2. Suggested task types per window
-
-DATA SOURCES:
-- Task completion timestamps
-- FocusSession records
-- TaskHistory with actual_minutes
-
-APPROACH:
-- Aggregate productivity by hour of day
-- Use pandas for time-slot analysis
-- Consider day of week patterns
-
-OUTPUT:
-- Recommended focus windows (e.g., "9-11 AM", "2-4 PM")
-- Task type suggestions based on historical patterns
-"""
 
 from datetime import datetime, timedelta
 from collections import defaultdict

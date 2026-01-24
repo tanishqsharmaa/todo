@@ -1,25 +1,4 @@
-"""
-Sentiment Analysis Module for AI-Powered To-Do List MVP
 
-This module analyzes text to determine user's emotional state:
-- Task descriptions
-- Daily reflections
-- Any user-provided text
-
-OUTPUT:
-- Sentiment score: -1 (very negative) to +1 (very positive)
-- Stress level: Low / Medium / High
-
-USAGE:
-- High stress → Use softer, encouraging reminder tones
-- Low stress → Use direct, assertive reminders
-- Affects notification language throughout the app
-
-IMPLEMENTATION:
-- Uses TextBlob for sentiment analysis
-- Falls back to simple keyword matching if TextBlob unavailable
-- Designed to be replaceable with more sophisticated NLP later
-"""
 
 try:
     from textblob import TextBlob

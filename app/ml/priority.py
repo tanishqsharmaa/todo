@@ -1,27 +1,4 @@
-"""
-AI Priority Prediction Engine for AI-Powered To-Do List MVP
 
-This module calculates dynamic priority scores for tasks based on:
-1. Days until deadline (urgency)
-2. User-assigned importance level
-3. Historical postponement frequency
-4. Historical completion speed vs estimates
-5. Task age (how long it's been pending)
-
-SCORING APPROACH:
-- Rule-based weighted scoring (0-100 scale)
-- Designed to be replaced with ML model later
-- All decisions are logged and explainable
-
-WEIGHTS (can be tuned):
-- Deadline urgency: 30%
-- Importance level: 25%
-- Postponement history: 20%
-- Estimation accuracy: 15%
-- Task age: 10%
-
-Higher scores = Higher priority = Should be done first
-"""
 
 from datetime import datetime
 from sqlalchemy import func
