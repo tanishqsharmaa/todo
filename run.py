@@ -1,18 +1,4 @@
-"""
-AI-Powered To-Do List MVP - Application Entry Point
 
-This is the main entry point for running the Flask application.
-Run with: python run.py
-
-The app will:
-1. Create the Flask application using the factory pattern
-2. Initialize the database (creates tables if they don't exist)
-3. Start the APScheduler for background reminder jobs
-4. Run the development server on http://localhost:5000
-
-For production deployment, use a WSGI server like gunicorn:
-    gunicorn "app:create_app()"
-"""
 
 import os
 from app import create_app
