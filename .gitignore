@@ -1,0 +1,56 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+
+# Flask environment variables
+.env
+.env.*
+flask_session/
+
+# Instance folder (Flask config, secrets)
+instance/
+
+# Database files
+*.sqlite
+*.sqlite3
+*.db
+
+# Migrations (uncomment if you want to ignore)
+#migrations/
+
+# Uploads / user-generated content
+static/uploads/
+media/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE / Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test / coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Build / distribution
+build/
+dist/
+*.egg-info/
+
+# Jupyter notebooks
+.ipynb_checkpoints
