@@ -21,3 +21,4 @@ APScheduler
 
 # Development
 python-dotenv
+gunicorn
